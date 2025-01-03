@@ -118,9 +118,9 @@ By base game behavior, maps maintain their JD when played at different song spee
 ## Understanding Variable NJS Base Game Mechanic in V4 Maps
 By base game behavior, maps can include NJS changes that are preset by the mapper. This allows for blocks to travel to the player at different speeds to create map effects and play experiences.
 
-**JDFixer does not override this.**
+**JDFixer does not override this, by design.**
 - JDFixer runs the entire map at the desired JD and any and all variable NJS experienced by the player is the same as if they were to play without JDFixer.
-- When running a map by RT, JDFixer sets the map's JD to give the desired RT with respect to the map's primary NJS value shown in the Song Info defined by the mapper. This means RT still varies accordingly if the map has variable NJS.
+- When running a map by RT, JDFixer sets the map's JD to give the desired RT with respect to the map's primary NJS value shown in the Song Info defined by the mapper. This means RT still varies accordingly if the map has variable NJS. Difficulty and speed changes are preserved.
 
 ## Tournaments and MP
 - **Tournament Assistant:** Supports Default, Dual Sync and AutoPause matches. You can only use one of the sliders at a time. As usual, enabling Preferences override both sliders. ***Avoid opening the Preferences menu in TA!*** *You will be stuck in it until you relaunch the game or the coordinator lets you out (this is by design in TA). However if you do choose to get yourself stuck inside just before a match, your match will still play fine when the coordinator starts it (but I hope you've set your Preferences correctly or left the slider in a sane spot lol).*
