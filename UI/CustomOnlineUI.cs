@@ -5,7 +5,6 @@ using Zenject;
 using System;
 using System.ComponentModel;
 using HMUI;
-using BeatSaberMarkupLanguage;
 using BeatSaberMarkupLanguage.Parser;
 
 namespace JDFixer.UI

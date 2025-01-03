@@ -1,15 +1,14 @@
 ﻿using HarmonyLib;
-using System;
 using System.Linq;
 using System.Reflection;
 
 namespace JDFixer
 {
-    [HarmonyPatch(typeof(BeatmapObjectSpawnMovementData), "Init")]
-    internal class SpawnMovementDataUpdatePatch
+    [HarmonyPatch(typeof(VariableMovementDataProvider), "Init")]
+    internal class VariableMovementDataProviderPatch
     {
-        internal static void Prefix(ref float startNoteJumpMovementSpeed, float startBpm, /*ref float noteJumpStartBeatOffset,*/ ref BeatmapObjectSpawnMovementData.NoteJumpValueType noteJumpValueType, ref float noteJumpValue)
-        {
+        internal static void Prefix(ref float noteJumpMovementSpeed, float bpm, ref BeatmapObjectSpawnMovementData.NoteJumpValueType noteJumpValueType, ref float noteJumpValue)
+        { 
             if (PluginConfig.Instance.enabled == false)
             {
                 return;
@@ -27,7 +26,7 @@ namespace JDFixer
             // Will just have to make a note to users as instructions. Not worth trying to find the map when in TA, Campaigns or MP
             float noteJumpStartBeatOffset = noteJumpValue;
 
-            float mapNJS = startNoteJumpMovementSpeed;
+            float mapNJS = noteJumpMovementSpeed;
             Plugin.Log.Debug("mapNJS:" + mapNJS.ToString());
 
             if (mapNJS <= 0.01) // Just in case?
@@ -68,7 +67,7 @@ namespace JDFixer
                     Plugin.Log.Debug("Using Threshold");
 
                     //return;
-                    desiredJumpDis = BeatmapUtils.CalculateJumpDistance(startBpm, mapNJS, noteJumpStartBeatOffset);
+                    desiredJumpDis = BeatmapUtils.CalculateJumpDistance(bpm, mapNJS, noteJumpStartBeatOffset);
                     goto SongSpeed; // Yes, a goto.
                 }
 
@@ -78,13 +77,13 @@ namespace JDFixer
                 if (rt_pref != null)
                     desiredJumpDis = rt_pref.reactionTime * mapNJS / 500;
 
-                if (BeatmapUtils.CalculateJumpDistance(startBpm, mapNJS, noteJumpStartBeatOffset) <= desiredJumpDis && PluginConfig.Instance.use_heuristic == 1)
+                if (BeatmapUtils.CalculateJumpDistance(bpm, mapNJS, noteJumpStartBeatOffset) <= desiredJumpDis && PluginConfig.Instance.use_heuristic == 1)
                 {
                     Plugin.Log.Debug("Not Fixing: Original JD below or equal setpoint");
-                    Plugin.Log.Debug($"BPM/NJS/Offset {startBpm}/{startNoteJumpMovementSpeed}/{noteJumpStartBeatOffset}");
+                    Plugin.Log.Debug($"BPM/NJS/Offset {bpm}/{noteJumpMovementSpeed}/{noteJumpStartBeatOffset}");
 
                     //return;
-                    desiredJumpDis = BeatmapUtils.CalculateJumpDistance(startBpm, mapNJS, noteJumpStartBeatOffset);
+                    desiredJumpDis = BeatmapUtils.CalculateJumpDistance(bpm, mapNJS, noteJumpStartBeatOffset);
                     goto SongSpeed;
                 }
             }
@@ -95,9 +94,9 @@ namespace JDFixer
                 if (mapNJS <= PluginConfig.Instance.lower_threshold || mapNJS >= PluginConfig.Instance.upper_threshold)
                 {
                     Plugin.Log.Debug("Using Threshold");
-                    Plugin.Log.Debug("selected:" + BeatmapUtils.CalculateJumpDistance(startBpm, mapNJS, noteJumpStartBeatOffset));
+                    Plugin.Log.Debug("selected:" + BeatmapUtils.CalculateJumpDistance(bpm, mapNJS, noteJumpStartBeatOffset));
                     //return;
-                    desiredJumpDis = BeatmapUtils.CalculateJumpDistance(startBpm, mapNJS, noteJumpStartBeatOffset);
+                    desiredJumpDis = BeatmapUtils.CalculateJumpDistance(bpm, mapNJS, noteJumpStartBeatOffset);
                     goto SongSpeed;
                 }
 
@@ -110,13 +109,13 @@ namespace JDFixer
                 // Heuristic: If map's original JD is less than the matching preference entry, play map at original JD
                 // Rationale: I created this mod because I don't like floaty maps. If the original JD chosen by the
                 // mapper is lower than my pick, it's probably more optimal than my pick.
-                if (BeatmapUtils.CalculateJumpDistance(startBpm, mapNJS, noteJumpStartBeatOffset) <= desiredJumpDis && PluginConfig.Instance.use_heuristic == 1)
+                if (BeatmapUtils.CalculateJumpDistance(bpm, mapNJS, noteJumpStartBeatOffset) <= desiredJumpDis && PluginConfig.Instance.use_heuristic == 1)
                 {
                     Plugin.Log.Debug("Not Fixing: Original JD below or equal setpoint");
-                    Plugin.Log.Debug($"BPM/NJS/Offset {startBpm}/{startNoteJumpMovementSpeed}/{noteJumpStartBeatOffset}");
+                    Plugin.Log.Debug($"BPM/NJS/Offset {bpm}/{noteJumpMovementSpeed}/{noteJumpStartBeatOffset}");
 
                     //return;
-                    desiredJumpDis = BeatmapUtils.CalculateJumpDistance(startBpm, mapNJS, noteJumpStartBeatOffset);
+                    desiredJumpDis = BeatmapUtils.CalculateJumpDistance(bpm, mapNJS, noteJumpStartBeatOffset);
                     goto SongSpeed;
                 }
             }
@@ -127,7 +126,7 @@ namespace JDFixer
 
             // Calculate New Offset Given Desired JD:
             float simOffset = 0;
-            float numCurr = 60f / startBpm;
+            float numCurr = 60f / bpm;
             float num2Curr = 4f;
 
             while (mapNJS * numCurr * num2Curr > 17.999)
@@ -251,7 +250,7 @@ namespace JDFixer
     }*/
 
 
-    internal class TimeControllerPatch
+    /*internal class TimeControllerPatch
     {
         private static DateTime af = new DateTime(DateTime.Now.Year, 4, 1);
         internal static BeatmapObjectSpawnMovementData.NoteSpawnData Postfix(BeatmapObjectSpawnMovementData.NoteSpawnData __result)
@@ -267,5 +266,5 @@ namespace JDFixer
 
             return __result;
         }
-    }
+    }*/
 }

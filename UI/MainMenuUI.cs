@@ -146,7 +146,7 @@ namespace JDFixer.UI
         [UIValue("press_ok_text_1")]
         private string Press_Ok_Text_1 = "<#ffffffff>Press OK to apply settings  <#ff0080ff>♡";
         [UIValue("press_ok_text_2")]
-        private string Press_Ok_Text_2 = "<size=70%><#ff0080ff>v7.3.0 by Zephyr9125";
+        private string Press_Ok_Text_2 = "<size=70%><#ff0080ff>v7.4.0 by Zephyr9125";
         [UIValue("press_ok_hint_2")]
         private string Press_Ok_Hint_2 = "";
     }
