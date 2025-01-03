@@ -1,4 +1,5 @@
-﻿using JDFixer.Interfaces;
+﻿using CustomCampaigns.Campaign.Missions;
+using JDFixer.Interfaces;
 using System;
 using System.Collections.Generic;
 using Zenject;
@@ -108,15 +109,14 @@ namespace JDFixer.Managers
                     // If a map is not dled, this will be the previous selected node's map
                     Plugin.Log.Debug("CC Level: " + MissionSelectionPatch.cc_level.levelID);  // For cross check with arg2.missionId
 
-                    BeatmapLevel beatmapLevel = CustomCampaigns.Utils.BeatmapUtils.GetMatchingBeatmapDifficulty(arg2.missionData.beatmapKey.levelId, arg2.missionData.beatmapCharacteristic, arg2.missionData.beatmapDifficulty);
-
-                    if (beatmapLevel != null) // lol null check just to print?
+                    if (arg2.missionData is CustomMissionDataSO)
                     {
-                        //Plugin.Log.Debug("MissionNode Diff: " + difficulty_beatmap.difficulty);  // For cross check with arg2.missionData.beatmapDifficulty
-                        //Plugin.Log.Debug("MissionNode Offset: " + difficulty_beatmap.noteJumpStartBeatOffset);
-                        //Plugin.Log.Debug("MissionNode NJS: " + difficulty_beatmap.noteJumpMovementSpeed);
+                        BeatmapLevel beatmapLevel = (arg2.missionData as CustomMissionDataSO).beatmapLevel;
 
-                        DiffcultyBeatmapUpdated(arg2.missionData.beatmapKey, beatmapLevel);
+                        if (beatmapLevel != null) // lol null check just to print?
+                        {
+                            DiffcultyBeatmapUpdated(arg2.missionData.beatmapKey, beatmapLevel);
+                        }
                     }
                 }
             }
