@@ -21,7 +21,7 @@ namespace JDFixer
             }
         }
 
-        internal static void Patch()
+        /*internal static void Patch()
         {
             if (PluginConfig.Instance.enabled && 
                 DateTime.Compare(DateTime.Now, new DateTime(DateTime.Now.Year, 3, 31)) >= 0 && DateTime.Compare(DateTime.Now, new DateTime(DateTime.Now.Year, 4, 2)) < 0 && 
@@ -35,6 +35,6 @@ namespace JDFixer
                 var postfix = AccessTools.Method(typeof(TimeControllerPatch), nameof(TimeControllerPatch.Postfix));
                 Plugin.harmony.Patch(original, null, new HarmonyMethod(postfix));
             }
-        }
+        }*/
     }
 }
