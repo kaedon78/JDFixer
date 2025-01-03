@@ -88,7 +88,7 @@ namespace JDFixer.UI
 
         internal void Refresh_BeatmapOffsets()
         {
-            Plugin.Log.Debug("Refresh_BeatmapOffsets");
+            //Plugin.Log.Debug("Refresh_BeatmapOffsets");
 
             BeatmapOffsets.Calculate_Nearest_JD_Snap_Point(JD_Value);
             BeatmapOffsets.Calculate_Nearest_RT_Snap_Point(RT_Value);
