@@ -16,6 +16,7 @@ Supports CustomCampaigns, Tournament Assistant, all flavors of Multiplayer, OST 
 - **Mod Settings menu** to easily configure UI options and Thresholds.
 - **Snap JD and RT to fractions of a beat.** Run map at JDs and RTs that line up with multiples of a desired beat fraction.
 - **Choose whether song speed affects JD or RT settings and Automated Preferences.** Choice of keeping JD settings regardless of song speed, auto-compensating RT based on song speed, or both! Applies to Practice mode and modifiers in Solo / MP / Party.
+- **Preserves BeatmapV4 NJS changes.** Runs map at desired JD (or RT based on the map's primary NJS), while allowing NJS to vary over the course of the map as defined by the mapper.
 
 
 ![screenshot](https://github.com/zeph-yr/JDFixer/blob/BS_1.26/Screenshots/6.0.0_menu_main_1.png)
@@ -113,6 +114,13 @@ By base game behavior, maps maintain their JD when played at different song spee
 - **JD_RT_Respectively:** If you prefer to have both of options, depending on whether you are using the JD or RT sliders and Automated Preferencences. This means when the JD slider is active or JD Automated Preferences is enabled, it will behave like the `JD_Settings` option, and when the RT slider is active or RT Automated Preferences is enabled, it will behave like the `RT_Settings` option.
 
 ![screenshot](https://github.com/zeph-yr/JDFixer/blob/BS_1.26_Offset/Screenshots/v7/7.0.0_mod_settings_song_speed_1.png)
+
+## Understanding Variable NJS Base Game Mechanic in V4 Maps
+By base game behavior, maps can include NJS changes that are preset by the mapper. This allows for blocks to travel to the player at different speeds to create map effects and play experiences.
+
+**JDFixer does not override this.**
+- JDFixer runs the entire map at the desired JD and any and all variable NJS experienced by the player is the same as if they were to play without JDFixer.
+- When running a map by RT, JDFixer sets the map's JD to give the desired RT with respect to the map's primary NJS value shown in the Song Info defined by the mapper. This means RT still varies accordingly if the map has variable NJS.
 
 ## Tournaments and MP
 - **Tournament Assistant:** Supports Default, Dual Sync and AutoPause matches. You can only use one of the sliders at a time. As usual, enabling Preferences override both sliders. ***Avoid opening the Preferences menu in TA!*** *You will be stuck in it until you relaunch the game or the coordinator lets you out (this is by design in TA). However if you do choose to get yourself stuck inside just before a match, your match will still play fine when the coordinator starts it (but I hope you've set your Preferences correctly or left the slider in a sane spot lol).*
