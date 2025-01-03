@@ -36,7 +36,7 @@
 	</settings-container>
 	<vertical pad-top='54' align='Center'>
 		<horizontal>
-			<text text='Instructions at github.com/zeph-yr/JDFixer     v7.3.0' font-color='#ff0080ff' font-size='3' align='Right' hover-hint="Read this to get the most out of the features"></text>
+			<text text='Instructions at github.com/zeph-yr/JDFixer     v7.4.0' font-color='#ff0080ff' font-size='3' align='Right' hover-hint="Read this to get the most out of the features"></text>
 			<clickable-text text='~open_donate_text' rich-text='true' font-color='#ff0080ff' align='Left' click-event='show_donate_modal' on-click='open_donate_modal' hover-hint='~open_donate_hint'/>
 		</horizontal>
 		<horizontal>
@@ -54,7 +54,7 @@
 						<text text='~donate_modal_text_static_2' word-wrapping='true' align='Right' rich-text='true'></text>
 					</horizontal>
 				</vertical>
-				<vertical horizontal-fit='PreferredSize' preferred-width='60' vertical-fit='Unconstrained' preferred-height='38'>
+				<vertical horizontal-fit='PreferredSize' preferred-width='58' vertical-fit='Unconstrained' preferred-height='38'>
 					<text-page text='~donate_modal_text_dynamic' word-wrapping='true' align='Left' rich-text='true'/>
 				</vertical>
 			</vertical>
