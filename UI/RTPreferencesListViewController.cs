@@ -119,7 +119,12 @@ namespace JDFixer.UI
 
         //----------------------------------------------------------------------------
 
+#if V1_44_3
+    // BSML 1.14 widened this to public, following HMUI; an override cannot narrow it back.
+        public override void DidActivate(bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling)
+#else
         protected override void DidActivate(bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling)
+#endif
         {
             base.DidActivate(firstActivation, addedToHierarchy, screenSystemEnabling);
             if (!firstActivation)

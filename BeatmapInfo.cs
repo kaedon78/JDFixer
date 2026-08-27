@@ -61,7 +61,7 @@ namespace JDFixer
             BeatmapBasicData beatmapBasicData;
             float njs = 10f;
             float offset = 0f;
-            if (level.beatmapBasicData.TryGetValue((key.beatmapCharacteristic, key.difficulty), out beatmapBasicData))
+            if (level.beatmapBasicData.TryGetValue((key.characteristic, key.difficulty), out beatmapBasicData))
             {
                 njs = beatmapBasicData.noteJumpMovementSpeed;
                 offset = beatmapBasicData.noteJumpStartBeatOffset;

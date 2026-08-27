@@ -224,7 +224,7 @@ namespace JDFixer
                 // key this mod stores and the one BeatLeader queries agree without translation.
                 string hash = key.levelId.Replace("custom_level_", "");
                 string difficulty = key.difficulty.ToString();
-                string mode = key.beatmapCharacteristic.SerializedName();
+                string mode = key.characteristic.SerializedName();
 
                 string url = Api_Url + "/v3/scores/" + Uri.EscapeDataString(hash) + "/" +
                              Uri.EscapeDataString(difficulty) + "/" + Uri.EscapeDataString(mode) + "/" +

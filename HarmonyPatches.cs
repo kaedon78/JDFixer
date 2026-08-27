@@ -186,11 +186,24 @@ namespace JDFixer
     [HarmonyPatch]
     internal class StandardLevelScenesTransitionSetupDataSOPatch
     {
-        private static MethodBase TargetMethod() => AccessTools.FirstMethod(typeof(StandardLevelScenesTransitionSetupDataSO),
-            m => m.Name == nameof(StandardLevelScenesTransitionSetupDataSO.Init) &&
+#if V1_44_3
+        // 1.44.3 collapsed the two Init overloads into one, and that one takes IBeatmapLevelData
+        // as its last parameter. The old filter picks "the overload that does not take level
+        // data", which now matches nothing: TargetMethod returns null, Harmony treats that as an
+        // error, and the patch is skipped. With a single overload there is nothing to choose
+        // between, so it is named directly.
+        // DeclaredMethod, not Method: the latter walks the base types, and an Init up the
+        // hierarchy makes the lookup ambiguous. Exactly one Init is declared here.
+        private static MethodBase TargetMethod() => AccessTools.DeclaredMethod(
+            typeof(StandardLevelScenesTransitionSetupData),
+            nameof(StandardLevelScenesTransitionSetupData.Init));
+#else
+        private static MethodBase TargetMethod() => AccessTools.FirstMethod(typeof(StandardLevelScenesTransitionSetupData),
+            m => m.Name == nameof(StandardLevelScenesTransitionSetupData.Init) &&
                  m.GetParameters().All(p => p.ParameterType != typeof(IBeatmapLevelData)));
+#endif
 
-        internal static void Postfix(StandardLevelScenesTransitionSetupDataSO __instance, GameplayModifiers gameplayModifiers, PracticeSettings practiceSettings)
+        internal static void Postfix(StandardLevelScenesTransitionSetupData __instance, GameplayModifiers gameplayModifiers, PracticeSettings practiceSettings)
         {
             // The only place in the play path that knows which beatmap is starting.
             // VariableMovementDataProvider.Init, which is where the applied value is known, is not
@@ -214,7 +227,7 @@ namespace JDFixer
     }
 
 
-    [HarmonyPatch(typeof(MultiplayerLevelScenesTransitionSetupDataSO), "Init")]
+    [HarmonyPatch(typeof(MultiplayerLevelScenesTransitionSetupData), "Init")]
     internal class MultiplayerLevelScenesTransitionSetupDataSOPatch
     {
         internal static void Postfix(GameplayModifiers gameplayModifiers)
@@ -229,7 +242,7 @@ namespace JDFixer
     }
 
 
-    [HarmonyPatch(typeof(MissionLevelScenesTransitionSetupDataSO), "Init")]
+    [HarmonyPatch(typeof(MissionLevelScenesTransitionSetupData), "Init")]
     internal class MissionLevelScenesTransitionSetupDataSOPatch
     {
         internal static void Postfix()

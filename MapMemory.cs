@@ -127,7 +127,7 @@ namespace JDFixer
                 return null;
             }
 
-            return identity + "|" + key.beatmapCharacteristic.SerializedName() + "|" + key.difficulty.ToString();
+            return identity + "|" + key.characteristic.SerializedName() + "|" + key.difficulty.ToString();
         }
 
 
@@ -177,7 +177,7 @@ namespace JDFixer
                 return null;
             }
 
-            return key.levelId + "|" + key.beatmapCharacteristic.SerializedName() + "|" + key.difficulty.ToString();
+            return key.levelId + "|" + key.characteristic.SerializedName() + "|" + key.difficulty.ToString();
         }
 
 
