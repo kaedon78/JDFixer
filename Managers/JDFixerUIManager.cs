@@ -16,10 +16,21 @@ namespace JDFixer.Managers
 
         private readonly List<IBeatmapInfoUpdater> beatmapInfoUpdaters;
 
+        // Optional on purpose. MainThreadDispatcher is the game's own marshaller, but whether it is
+        // bound in the menu container is not something a build can prove. InjectOptional means a
+        // missing binding leaves this null and costs a UI refresh, rather than failing the whole
+        // installer and taking the mod down with it.
+        private readonly MainThreadDispatcher mainThread;
+
+        // The selection the UI is currently showing, so a value arriving late can be checked
+        // against it.
+        private BeatmapInfo lastInfo = BeatmapInfo.Empty;
+
 
         [Inject]
-        private JDFixerUIManager(StandardLevelDetailViewController standardLevelDetailViewController, MissionSelectionMapViewController missionSelectionMapViewController, BeatmapLevelsModel beatmapLevelsModel, MainMenuViewController mainMenuViewController, List<IBeatmapInfoUpdater> iBeatmapInfoUpdaters)
+        private JDFixerUIManager(StandardLevelDetailViewController standardLevelDetailViewController, MissionSelectionMapViewController missionSelectionMapViewController, BeatmapLevelsModel beatmapLevelsModel, MainMenuViewController mainMenuViewController, List<IBeatmapInfoUpdater> iBeatmapInfoUpdaters, [InjectOptional] MainThreadDispatcher mainThreadDispatcher)
         {
+            mainThread = mainThreadDispatcher;
             //Plugin.Log.Debug("JDFixerUIManager()");
 
             levelDetail = standardLevelDetailViewController;
@@ -48,6 +59,8 @@ namespace JDFixer.Managers
             }
 
             mainMenu.didDeactivateEvent += MainMenu_didDeactivateEvent; ;
+
+            ReplayDownloader.ValueArrived += Downloaded_Value_Arrived;
         }
 
 
@@ -62,6 +75,8 @@ namespace JDFixer.Managers
             missionSelection.didSelectMissionLevelEvent -= MissionSelection_didSelectMissionLevelEvent_Base;
 
             mainMenu.didDeactivateEvent -= MainMenu_didDeactivateEvent;
+
+            ReplayDownloader.ValueArrived -= Downloaded_Value_Arrived;
         }
 
 
@@ -137,6 +152,44 @@ namespace JDFixer.Managers
         }
 
 
+        // A download lands on a background thread, seconds after the map was selected. If the same
+        // beatmap is still on screen this MUST write the value into the config: the play-time patch
+        // reads the slider value, not the store, so a beatmap that now counts as remembered -- and
+        // so bypasses Automated Preferences -- would otherwise be played at whatever the previous
+        // map left behind.
+        private void Downloaded_Value_Arrived(BeatmapKey key, float jumpDistance)
+        {
+            BeatmapInfo info = lastInfo;
+
+            if (info == null || MapMemory.Key_For(info.Key) != MapMemory.Key_For(key))
+            {
+                return;
+            }
+
+            MapMemory.Restore(info);
+
+            // Only the on-screen slider is left, and touching UI needs the main thread. Without the
+            // dispatcher the value is still correct and the slider catches up on the next selection.
+            if (mainThread == null)
+            {
+                return;
+            }
+
+            mainThread.DispatchOnMainThread(() =>
+            {
+                if (UI.ModifierUI.Instance != null)
+                {
+                    UI.ModifierUI.Instance.BeatmapInfoUpdated(info);
+                }
+
+                if (UI.LegacyModifierUI.Instance != null)
+                {
+                    UI.LegacyModifierUI.Instance.BeatmapInfoUpdated(info);
+                }
+            });
+        }
+
+
         private void MainMenu_didDeactivateEvent(bool removedFromHierarchy, bool screenSystemDisabling)
         {
             //Plugin.Log.Debug("MainMenu_didDeactivate");
@@ -162,9 +215,21 @@ namespace JDFixer.Managers
         {
             //Plugin.Log.Debug("DiffcultyBeatmapUpdated()");
 
+            BeatmapInfo info = new BeatmapInfo(beatmapKey, beatmapLevel);
+            lastInfo = info;
+
+            // Before the UI is told: the sliders bind to PluginConfig, so a remembered value has to
+            // be in there by the time BeatmapInfoUpdated fires.
+            MapMemory.Restore(info);
+
+            // Debounced inside, and a no-op unless the download fallback is switched on. Nothing
+            // leaves the machine until the selection has been still for over a second, so scrolling
+            // a list costs nothing.
+            ReplayDownloader.Note_Selection(beatmapKey, info.SongIdentity);
+
             foreach (var beatmapInfoUpdater in beatmapInfoUpdaters)
             {
-                beatmapInfoUpdater.BeatmapInfoUpdated(new BeatmapInfo(beatmapKey, beatmapLevel));
+                beatmapInfoUpdater.BeatmapInfoUpdated(info);
             }
         }
     }

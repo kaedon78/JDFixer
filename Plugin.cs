@@ -35,6 +35,8 @@ namespace JDFixer
             //game_version = IPA.Utilities.UnityGame.GameVersion.ToString();
             //Plugin.Log.Debug(game_version);
 
+            MapMemory.Load();
+
             harmony = new Harmony("com.zephyr.BeatSaber.JDFixer");
             //TimeSetup.Patch();
             harmony.PatchAll(System.Reflection.Assembly.GetExecutingAssembly());
@@ -47,6 +49,8 @@ namespace JDFixer
         public void OnApplicationQuit()
         {
             PluginConfig.Instance.Changed();
+            ReplayDownloader.Shutdown();
+            MapMemory.Save();
             harmony.UnpatchSelf();
         }
 

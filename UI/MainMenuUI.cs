@@ -1,12 +1,15 @@
 ﻿using Zenject;
 using System;
+using System.ComponentModel;
 using BeatSaberMarkupLanguage.Attributes;
 using BeatSaberMarkupLanguage.Components.Settings;
 
 namespace JDFixer.UI
 {
-    internal sealed class MainMenuUI : IInitializable, IDisposable
+    internal sealed class MainMenuUI : IInitializable, IDisposable, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+
         private MainMenuUI()
         {
 
@@ -142,6 +145,76 @@ namespace JDFixer.UI
         {
             Upper_Threshold_Value = value;
         }
+
+        // Per-map memory. Both replay settings live here rather than in the mod tab: one reads a
+        // folder and the other talks to a third party, and neither is a per-session choice.
+
+        [UIValue("use_replay_values")]
+        private bool Use_Replay_Values
+        {
+            get => PluginConfig.Instance.use_replay_values;
+            set
+            {
+                PluginConfig.Instance.use_replay_values = value;
+            }
+        }
+        [UIAction("set_use_replay_values")]
+        private void Set_Use_Replay_Values(bool value)
+        {
+            Use_Replay_Values = value;
+        }
+
+
+        [UIValue("download_replay_values")]
+        private bool Download_Replay_Values
+        {
+            get => PluginConfig.Instance.download_replay_values;
+            set
+            {
+                PluginConfig.Instance.download_replay_values = value;
+            }
+        }
+        [UIAction("set_download_replay_values")]
+        private void Set_Download_Replay_Values(bool value)
+        {
+            Download_Replay_Values = value;
+        }
+
+
+        // The per-map Forget button is in the mod tab beside the sliders; this is
+        // the bulk one, and it lives here because it throws away every map at once. Two clicks
+        // rather than a modal: this menu has no confirmation dialog to borrow.
+        private bool _forget_all_armed = false;
+
+        [UIValue("forget_all_button")]
+        private string Forget_All_Button => Get_Forget_All_Button();
+
+        private string Get_Forget_All_Button()
+        {
+            if (_forget_all_armed)
+            {
+                return "<#ff0080>Press  again  to  forget  every  map";
+            }
+
+            return "Forget  all  remembered  map  values";
+        }
+
+        [UIAction("forget_all_clicked")]
+        private void Forget_All_Clicked()
+        {
+            if (_forget_all_armed)
+            {
+                MapMemory.Forget_All();
+                _forget_all_armed = false;
+            }
+            else
+            {
+                _forget_all_armed = true;
+            }
+
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Forget_All_Button)));
+        }
+
 
         [UIValue("press_ok_text_1")]
         private string Press_Ok_Text_1 = "<#ffffffff>Press OK to apply settings  <#ff0080ff>♡";

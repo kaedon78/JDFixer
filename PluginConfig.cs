@@ -55,6 +55,27 @@ namespace JDFixer
 
         internal bool af_enabled { get; set; } = false;
 
+        // Per-map memory. The values themselves live in UserData/JDFixer_MapValues.json, not here:
+        // that collection grows with the song library, and this file is rewritten whole on change.
+        internal virtual bool remember_per_map { get; set; } = false;
+
+        // Read BeatLeader's replays for maps we have no record of. They are what the game actually
+        // played and they cover everything played before remember_per_map existed.
+        internal virtual bool use_replay_values { get; set; } = true;
+
+        // Ask BeatLeader about a map that has no local replay and no play of our own. OFF by
+        // default and deliberately separate from use_replay_values: this one leaves the machine.
+        internal virtual bool download_replay_values { get; set; } = false;
+
+        // Fallback for a beatmap with no saved value. Without it the sliders simply keep whatever
+        // the previously selected map left behind, so what an unplayed map runs at depends on the
+        // order you browsed in. Stored as both a JD and an RT for the same reason the live
+        // setpoint is: they are one value seen through the map NJS, and which one is meaningful
+        // across maps depends on slider_setting.
+        internal virtual bool use_default_for_unsaved { get; set; } = false;
+        internal virtual float default_jumpDistance { get; set; } = 20f;
+        internal virtual float default_reactionTime { get; set; } = 500f;
+
 
         /// <summary>
         /// Call this to force BSIPA to update the config file. This is also called by BSIPA if it detects the file was modified.

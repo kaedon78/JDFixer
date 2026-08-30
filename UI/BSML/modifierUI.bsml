@@ -16,6 +16,19 @@
 			<slider-setting id='jd_slider' value ='jd_value' show-buttons='true' on-change='set_jd_value' apply-on-change='true' bind-value='true' text='Desired Jump Distance' increment='0.1' min='~min_jd_slider' max='~max_jd_slider' formatter='jd_slider_formatter'></slider-setting>
 			<slider-setting id='rt_slider' value ='rt_value' show-buttons='true' on-change='set_rt_value' apply-on-change='true' bind-value='true' text='Reaction Time' increment='5' min='~min_rt_slider' max='~max_rt_slider' formatter='rt_slider_formatter'></slider-setting>
 		</vertical>
+		<horizontal>
+			<text text='----------------' min-width='29' align='Left' rich-text='true' font-size='1' font-color='#00000000'/>
+		</horizontal>
+		<horizontal>
+			<text text='Per-Map Values' font-size='4' underlined='true' font-color='#00ff99ff' align='Center'></text>
+		</horizontal>
+		<checkbox-setting value='remember_per_map' on-change='set_remember_per_map' text='Remember values per map' hover-hint='Saves the JD/RT each beatmap was last played at and restores it when you select that beatmap again. A remembered value overrides Automated Preferences for that map'></checkbox-setting>
+		<button align='Center' on-click='forget_button_clicked' text='~forget_button' hover-hint='Forgets the saved value for the selected beatmap so it follows the default and Automated Preferences again. Press again on a forgotten map to bring its value back from the replay it came from'></button>
+		<checkbox-setting value='use_default_for_unsaved' on-change='set_use_default_for_unsaved' text='Use a default for unplayed maps' hover-hint='Maps with no saved value start from a fixed baseline instead of keeping whatever the last selected map was set to'></checkbox-setting>
+		<button align='Center' on-click='default_button_clicked' text='~default_button' hover-hint='Stores the sliders current value as that baseline'></button>
+		<horizontal>
+			<text text='----------------' min-width='29' align='Left' rich-text='true' font-size='1' font-color='#00000000'/>
+		</horizontal>
 		<increment-setting value='increment_value' apply-on-change='true' bind-value='true' text='Automated Preferences' integer-only='true' min='0' max='2' formatter='increment_formatter' hover-hint='Autoselect JD or RT based on NJS'/>
 		<button align='Center' on-click='pref_button_clicked' text='~pref_button' hover-hint='Click to set up Automated Preferences'></button>
 

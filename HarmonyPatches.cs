@@ -59,8 +59,19 @@ namespace JDFixer
                 }
             }
 
+            // Per-map memory: a value saved for THIS beatmap outranks the NJS-driven preferences
+            // and their bypass heuristic, which are the fallback for maps never played before.
+            // The value itself is not read back here -- MapMemory.Restore already put it in the
+            // config the sliders bind to, so an adjustment made after selecting the map still wins.
+            bool remembered = PluginConfig.Instance.remember_per_map && MapMemory.Has(MapMemory.Pending_Key);
+
+            if (remembered)
+            {
+                Plugin.Log.Debug("Using remembered value for this map");
+            }
+
             // NJS-RT setpoints from Preferences
-            if (PluginConfig.Instance.use_rt_pref)
+            if (!remembered && PluginConfig.Instance.use_rt_pref)
             {
                 if (mapNJS <= PluginConfig.Instance.lower_threshold || mapNJS >= PluginConfig.Instance.upper_threshold)
                 {
@@ -89,7 +100,7 @@ namespace JDFixer
             }
 
             // NJS-JD setpoints from Preferences
-            else if (PluginConfig.Instance.use_jd_pref)
+            else if (!remembered && PluginConfig.Instance.use_jd_pref)
             {
                 if (mapNJS <= PluginConfig.Instance.lower_threshold || mapNJS >= PluginConfig.Instance.upper_threshold)
                 {
@@ -122,6 +133,14 @@ namespace JDFixer
 
             // 1.29.1
             SongSpeed:
+            // Recorded before Get_Modified_DesiredJD: the song-speed adjustment is a property of
+            // the modifiers picked for this play, not of the map, and baking it in would let one
+            // play at 1.2x move the map's setpoint permanently.
+            if (PluginConfig.Instance.remember_per_map)
+            {
+                MapMemory.Remember(MapMemory.Pending_Key, desiredJumpDis, mapNJS, MapMemory.Pending_Identity);
+            }
+
             desiredJumpDis = SpawnMovementDataUpdateHelper.Get_Modified_DesiredJD(desiredJumpDis, mapNJS);
 
             // Calculate New Offset Given Desired JD:
@@ -171,8 +190,21 @@ namespace JDFixer
             m => m.Name == nameof(StandardLevelScenesTransitionSetupDataSO.Init) &&
                  m.GetParameters().All(p => p.ParameterType != typeof(IBeatmapLevelData)));
 
-        internal static void Postfix(GameplayModifiers gameplayModifiers, PracticeSettings practiceSettings)
+        internal static void Postfix(StandardLevelScenesTransitionSetupDataSO __instance, GameplayModifiers gameplayModifiers, PracticeSettings practiceSettings)
         {
+            // The only place in the play path that knows which beatmap is starting.
+            // VariableMovementDataProvider.Init, which is where the applied value is known, is not
+            // told. Read from the instance rather than the Init parameter: the parameter is byref
+            // and Init has assigned the property by the time a postfix runs.
+            MapMemory.Pending_Key = __instance.beatmapKey;
+
+            // Recorded alongside the key so the value can follow this map to a future re-upload,
+            // where the hash -- and so the levelId this is stored under -- will be different.
+            BeatmapLevel level = __instance.beatmapLevel;
+            MapMemory.Pending_Identity = level == null
+                ? null
+                : MapMemory.Identity_Of(level.songName, string.Join(",", level.allMappers));
+
             BeatmapInfo.speedMultiplier = gameplayModifiers.songSpeedMul;
             if (practiceSettings != null)
             {
@@ -187,7 +219,25 @@ namespace JDFixer
     {
         internal static void Postfix(GameplayModifiers gameplayModifiers)
         {
+            // Multiplayer is not remembered. Clear the key the last solo play left behind, or this
+            // play would be recorded against that map.
+            MapMemory.Pending_Key = default(BeatmapKey);
+            MapMemory.Pending_Identity = null;
+
             BeatmapInfo.speedMultiplier = gameplayModifiers.songSpeedMul;
+        }
+    }
+
+
+    [HarmonyPatch(typeof(MissionLevelScenesTransitionSetupDataSO), "Init")]
+    internal class MissionLevelScenesTransitionSetupDataSOPatch
+    {
+        internal static void Postfix()
+        {
+            // Same for campaigns and Tournament Assistant: they do not run through the standard
+            // transition, so without this the key is whatever solo played last.
+            MapMemory.Pending_Key = default(BeatmapKey);
+            MapMemory.Pending_Identity = null;
         }
     }
 

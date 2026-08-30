@@ -52,11 +52,15 @@ namespace JDFixer.UI
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Map_Min_JD)));
             //PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ReactionTimeText))); // For old RT Display
 
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Forget_Button)));
+
             PostParse();
         }
 
         internal void Refresh()
         {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Forget_Button)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Default_Button)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Slider_Setting_Value)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Increment_Value)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Pref_Button)));
@@ -548,6 +552,120 @@ namespace JDFixer.UI
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Min_JD_Slider)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Max_JD_Slider)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(JD_Value)));
+        }
+
+
+        //===============================================================
+        // Per-map memory
+
+        [UIValue("remember_per_map")]
+        private bool Remember_Per_Map
+        {
+            get => PluginConfig.Instance.remember_per_map;
+            set
+            {
+                PluginConfig.Instance.remember_per_map = value;
+            }
+        }
+
+        [UIAction("set_remember_per_map")]
+        private void Set_Remember_Per_Map(bool value)
+        {
+            Remember_Per_Map = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Forget_Button)));
+        }
+
+
+        // One button, two directions. Forget is reversible -- the replay it came from is still on
+        // disk -- so a separate Restore control would sit greyed out almost all of the time. The
+        // label always names the action it will actually perform.
+        [UIValue("forget_button")]
+        private string Forget_Button => Get_Forget_Button();
+
+        private string Get_Forget_Button()
+        {
+            if (!PluginConfig.Instance.remember_per_map)
+            {
+                return "<#8c8c8c>Remembering  is  off";
+            }
+
+            if (MapMemory.Is_Forgotten(_selectedBeatmap.Key))
+            {
+                return "<#00000000>----<#00ff99>Restore  This  Map<#00000000>----";
+            }
+
+            if (MapMemory.Has(_selectedBeatmap.Key))
+            {
+                return "<#00000000>----<#ffff00>Forget  This  Map<#00000000>----";
+            }
+
+            return "<#8c8c8c>Nothing  saved  for  this  map";
+        }
+
+        [UIAction("forget_button_clicked")]
+        private void Forget_Button_Clicked()
+        {
+            bool changed = MapMemory.Is_Forgotten(_selectedBeatmap.Key)
+                ? MapMemory.Restore_Forgotten(_selectedBeatmap.Key)
+                : MapMemory.Forget(_selectedBeatmap.Key);
+
+            // Restore_Forgotten reports whether a value came back, but the tombstone is lifted
+            // either way, so the label has to be refreshed regardless of what it returned.
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Forget_Button)));
+
+            if (changed)
+            {
+                // The restored value belongs in the sliders straight away.
+                MapMemory.Restore(_selectedBeatmap);
+                BeatmapInfoUpdated(_selectedBeatmap);
+            }
+        }
+
+
+        [UIValue("use_default_for_unsaved")]
+        private bool Use_Default_For_Unsaved
+        {
+            get => PluginConfig.Instance.use_default_for_unsaved;
+            set
+            {
+                PluginConfig.Instance.use_default_for_unsaved = value;
+            }
+        }
+
+        [UIAction("set_use_default_for_unsaved")]
+        private void Set_Use_Default_For_Unsaved(bool value)
+        {
+            Use_Default_For_Unsaved = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Default_Button)));
+        }
+
+
+        [UIValue("default_button")]
+        private string Default_Button => Get_Default_Button();
+
+        private string Get_Default_Button()
+        {
+            // Shown on the button itself so the baseline is visible without opening the json.
+            if (PluginConfig.Instance.slider_setting == 0)
+            {
+                return "Set  default  from  slider   (<#ffff00>" +
+                       PluginConfig.Instance.default_jumpDistance.ToString("0.##") + "<#ffffff>)";
+            }
+
+            return "Set  default  from  slider   (<#cc99ff>" +
+                   PluginConfig.Instance.default_reactionTime.ToString("0") + " ms<#ffffff>)";
+        }
+
+        [UIAction("default_button_clicked")]
+        private void Default_Button_Clicked()
+        {
+            // Both units are captured at once. They are the same setpoint seen through this map's
+            // NJS, so taking only the active one would leave the other stale and the default would
+            // jump the next time the slider mode was flipped.
+            PluginConfig.Instance.default_jumpDistance = PluginConfig.Instance.jumpDistance;
+            PluginConfig.Instance.default_reactionTime = PluginConfig.Instance.reactionTime;
+
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Default_Button)));
         }
 
 
