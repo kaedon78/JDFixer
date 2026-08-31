@@ -1,4 +1,6 @@
-﻿using CustomCampaigns.Campaign.Missions;
+﻿#if CUSTOM_CAMPAIGNS
+using CustomCampaigns.Campaign.Missions;
+#endif
 using JDFixer.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -49,6 +51,7 @@ namespace JDFixer.Managers
             levelDetail.didChangeDifficultyBeatmapEvent += LevelDetail_didChangeDifficultyBeatmapEvent;
             levelDetail.didChangeContentEvent += LevelDetail_didChangeContentEvent;
 
+#if CUSTOM_CAMPAIGNS
             if (Plugin.CheckForCustomCampaigns())
             {
                 missionSelection.didSelectMissionLevelEvent += MissionSelection_didSelectMissionLevelEvent_CC;
@@ -57,6 +60,14 @@ namespace JDFixer.Managers
             {
                 missionSelection.didSelectMissionLevelEvent += MissionSelection_didSelectMissionLevelEvent_Base;
             }
+#else
+            // The CustomCampaigns integration needs that mod's assembly to compile, and it is not
+            // on this machine -- no install here ships Custom Campaigns.dll. The runtime check
+            // already falls back to the base handler whenever the mod is absent, so this is the
+            // same behaviour with the unbuildable half removed. Define CUSTOM_CAMPAIGNS to restore
+            // it once that assembly is available for 1.40.
+            missionSelection.didSelectMissionLevelEvent += MissionSelection_didSelectMissionLevelEvent_Base;
+#endif
 
             mainMenu.didDeactivateEvent += MainMenu_didDeactivateEvent; ;
 
@@ -71,7 +82,9 @@ namespace JDFixer.Managers
             levelDetail.didChangeDifficultyBeatmapEvent -= LevelDetail_didChangeDifficultyBeatmapEvent;
             levelDetail.didChangeContentEvent -= LevelDetail_didChangeContentEvent;
 
+#if CUSTOM_CAMPAIGNS
             missionSelection.didSelectMissionLevelEvent -= MissionSelection_didSelectMissionLevelEvent_CC;
+#endif
             missionSelection.didSelectMissionLevelEvent -= MissionSelection_didSelectMissionLevelEvent_Base;
 
             mainMenu.didDeactivateEvent -= MainMenu_didDeactivateEvent;
@@ -105,6 +118,7 @@ namespace JDFixer.Managers
         }
 
 
+#if CUSTOM_CAMPAIGNS
         private void MissionSelection_didSelectMissionLevelEvent_CC(MissionSelectionMapViewController arg1, MissionNode arg2)
         {
             // Yes, we must check for both arg2.missionData and arg2.missionData.beatmapCharacteristic:
@@ -141,6 +155,7 @@ namespace JDFixer.Managers
             }
         }
 
+#endif
 
         private void MissionSelection_didSelectMissionLevelEvent_Base(MissionSelectionMapViewController arg1, MissionNode arg2)
         {
