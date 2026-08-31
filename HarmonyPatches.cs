@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -229,9 +230,22 @@ namespace JDFixer
     }
 
 
-    [HarmonyPatch(typeof(MissionLevelScenesTransitionSetupDataSO), "Init")]
+    [HarmonyPatch]
     internal class MissionLevelScenesTransitionSetupDataSOPatch
     {
+        // 1.40.5 declares TWO Init overloads on this type -- one taking IBeatmapLevelData and one
+        // not -- so naming the method by string resolved to neither. Harmony raised
+        // AmbiguousMatchException out of PatchAll, which aborted the whole call: the mod loaded,
+        // BSIPA listed it, and not one of its patches was applied. Caught by the runtime probe,
+        // because nothing about it is visible at compile time.
+        //
+        // Both overloads are patched rather than one being picked. Whichever the game calls has to
+        // clear the pending key, and choosing wrong would silently record a campaign play against
+        // whatever map was played last -- the exact thing this patch exists to prevent.
+        private static IEnumerable<MethodBase> TargetMethods() =>
+            AccessTools.GetDeclaredMethods(typeof(MissionLevelScenesTransitionSetupDataSO))
+                       .Where(m => m.Name == nameof(MissionLevelScenesTransitionSetupDataSO.Init));
+
         internal static void Postfix()
         {
             // Same for campaigns and Tournament Assistant: they do not run through the standard
